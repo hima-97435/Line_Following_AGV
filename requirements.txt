@@ -1,0 +1,11 @@
+# Simulation and analysis (tested with Python 3.11, pybullet 3.2.7)
+pybullet>=3.2.5
+numpy>=1.24
+scipy>=1.10
+matplotlib>=3.7
+Pillow>=9.0
+# Report generation
+reportlab>=4.0
+pypdf>=3.0
+# Tests
+pytest>=7.0
