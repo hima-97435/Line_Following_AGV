@@ -77,6 +77,9 @@ def run_episode(cfg: SimConfig, callback=None, keep_world=False):
                 break
         else:
             lost_time = 0.0
+            if cp.gain_schedule:
+                # zero steady-state axle offset on any arc (and zeta = 1/sqrt 2): kp = 2 v / L^2
+                ctrl.kp = cp.kp_factor * 2.0 * max(v_ref, 0.05) / L_eff ** 2
             w_cmd = ctrl.step(e_hat, de_hat)
             v_cmd = cp.base_speed
         v_ref = v_cmd
