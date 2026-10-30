@@ -82,7 +82,82 @@ class IRArray:
         return LineReading(error=e, lost=False, raw=counts)
 
 
+class Camera:
+    def __init__(self, cfg, world, rng):
+        self.cfg, self.world, self.rng = cfg, world, rng
+        sp = cfg.sensor
+        self.w, self.h = sp.cam_width, sp.cam_height
+        self.pitch = math.radians(sp.cam_pitch_deg)
+        self.f = (self.h / 2) / math.tan(math.radians(sp.cam_fov_deg) / 2)
+        self.proj = pb.computeProjectionMatrixFOV(sp.cam_fov_deg, self.w / self.h, 0.02, 3.0)
+        # camera axes expressed in the robot frame
+        cp, spn = math.cos(self.pitch), math.sin(self.pitch)
+        self.fwd = np.array([cp, 0, -spn])
+        self.up = np.array([spn, 0, cp])
+        self.right = np.array([0, -1.0, 0])
+        self.cam_local = np.array([sp.cam_x, 0, sp.cam_height_m - cfg.robot.wheel_radius])
+        # precompute floor coordinates of every pixel row/column (flat-floor IPM);
+        # pixel offsets are measured from the image centre (calibrated: zero bias
+        # on a straight tape in both driving directions)
+        u = np.arange(self.w) - self.w / 2
+        v = np.arange(self.h) - self.h / 2
+        U, V = np.meshgrid(u, v)
+        d = (self.fwd[None, None, :] * self.f + self.right[None, None, :] * U[..., None]
+             - self.up[None, None, :] * V[..., None])
+        tz = np.where(d[..., 2] < -1e-6, sp.cam_height_m / -d[..., 2], np.nan)
+        self.floor_x = sp.cam_x + tz * d[..., 0]
+        self.floor_y = tz * d[..., 1]
+        self.last_image = None
+        self.last_side = 0.0
+
+    def render(self):
+        p = self.world.p
+        _, pos, orn = self.world.pose()
+        R, t = _rotation(orn), np.asarray(pos)
+        eye = R @ self.cam_local + t
+        target = eye + R @ self.fwd
+        up = R @ self.up
+        view = p.computeViewMatrix(eye.tolist(), target.tolist(), up.tolist())
+        renderer = pb.ER_BULLET_HARDWARE_OPENGL if self.cfg.gui else pb.ER_TINY_RENDERER
+        img = p.getCameraImage(self.w, self.h, view, self.proj, renderer=renderer,
+                               flags=pb.ER_NO_SEGMENTATION_MASK)
+        rgb = np.reshape(np.asarray(img[2], dtype=np.uint8), (self.h, self.w, 4))[..., :3]
+        gray = rgb.astype(np.float32).mean(axis=2)
+        gray += self.rng.normal(0, 255 * self.cfg.sensor.noise_std, gray.shape)   # pixel noise
+        self.last_image = np.clip(gray, 0, 255)
+        return self.last_image
+
+    def read(self, hint=None) -> LineReading:
+        L = self.cfg.sensor.cam_lookahead
+        gray = self.render()
+        # adaptive threshold: tape is much darker than the floor
+        thr = min(110.0, 0.5 * (np.percentile(gray, 95) + np.percentile(gray, 2)))
+        mask = gray < thr
+        xs, ys, ws = [], [], []
+        for r in range(self.h):
+            cols = np.nonzero(mask[r])[0]
+            if len(cols) < 1 or not np.isfinite(self.floor_x[r, 0]):
+                continue
+            fy = self.floor_y[r, cols]
+            width = fy.max() - fy.min()
+            if width > 3 * TAPE_WIDTH:          # reject rows with clutter / blobs
+                continue
+            xs.append(self.floor_x[r, cols].mean())
+            ys.append(fy.mean())
+            ws.append(len(cols))
+        if len(xs) < 4:
+            return LineReading(error=self.last_side * 0.06, lost=True)
+        xs, ys, ws = map(np.asarray, (xs, ys, ws))
+        deg = 2 if len(xs) >= 8 else 1
+        coef = np.polyfit(xs, ys, deg, w=np.sqrt(ws))
+        poly = np.poly1d(coef)
+        e = float(poly(L))
+        slope = float(poly.deriv()(L))
+        curv = float(poly.deriv(2)(L) / (1 + slope ** 2) ** 1.5) if deg == 2 else 0.0
+        self.last_side = math.copysign(1.0, e) if abs(e) > 1e-4 else self.last_side
+        return LineReading(error=e, lost=False, heading=math.atan(slope), curvature=curv,
+                           raw=np.array([len(xs)]))
+
+
 def make_sensor(cfg, world, rng):
-    if cfg.sensor_type == "ir":
-        return IRArray(cfg, world, rng)
-    raise ValueError(f"Unknown sensor type {cfg.sensor_type}")
+    return Camera(cfg, world, rng) if cfg.sensor.kind == "camera" else IRArray(cfg, world, rng)
