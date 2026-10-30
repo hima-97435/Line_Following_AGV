@@ -114,6 +114,37 @@ class FuzzyPD:
         return float(self.u_max * (w * self.table).sum() / w.sum())   # weighted-average defuzzification
 
 
+class LineKalman:
+    """Constant-velocity Kalman filter on the line error: x = [e, de/dt]."""
+
+    def __init__(self, dt, q, r):
+        self.dt, self.q, self.r = dt, q, r
+        self.F = np.array([[1.0, dt], [0.0, 1.0]])
+        self.Q = q * np.array([[dt ** 3 / 3, dt ** 2 / 2], [dt ** 2 / 2, dt]])
+        self.H = np.array([[1.0, 0.0]])
+        self.reset()
+
+    def reset(self, e0=0.0):
+        self.x = np.array([e0, 0.0])
+        self.P = np.diag([1e-3, 1e-2])
+        self.initialised = False
+
+    def step(self, z, valid=True):
+        if not self.initialised and valid:
+            self.x[:] = [z, 0.0]
+            self.initialised = True
+            return self.x.copy()
+        self.x = self.F @ self.x
+        self.P = self.F @ self.P @ self.F.T + self.Q
+        if valid:
+            y = z - self.x[0]
+            S = self.P[0, 0] + self.r
+            K = self.P[:, 0] / S
+            self.x = self.x + K * y
+            self.P = self.P - np.outer(K, self.H @ self.P)
+        return self.x.copy()
+
+
 def make_controller(cp, dt):
     if cp.controller == "pid":
         return PID(cp.kp, cp.ki, cp.kd, dt, cp.omega_max, cp.d_filter_n)
