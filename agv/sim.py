@@ -81,7 +81,14 @@ def run_episode(cfg: SimConfig, callback=None, keep_world=False):
                 # zero steady-state axle offset on any arc (and zeta = 1/sqrt 2): kp = 2 v / L^2
                 ctrl.kp = cp.kp_factor * 2.0 * max(v_ref, 0.05) / L_eff ** 2
             w_cmd = ctrl.step(e_hat, de_hat)
-            v_cmd = cp.base_speed
+            if cp.edge_guard:
+                # keep the line inside the sensor's field of view on corners tighter than
+                # R_min = L^2 / (2 * half_span), where zero axle offset is unattainable
+                excess = abs(e_hat) - cp.edge_frac * cfg.sensor.half_span
+                if excess > 0:
+                    w_cmd = float(np.clip(w_cmd + math.copysign(cp.edge_gain * excess, e_hat),
+                                          -cp.omega_max, cp.omega_max))
+            v_cmd = sched.step(e_hat, w_cmd, reading.curvature)
         v_ref = v_cmd
 
         # ---------------- differential-drive inverse kinematics + saturation

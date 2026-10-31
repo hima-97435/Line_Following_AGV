@@ -145,6 +145,26 @@ class LineKalman:
         return self.x.copy()
 
 
+class SpeedScheduler:
+    """Curvature/error adaptive forward speed: v = v_max / (1 + k_e|e| + k_w|w_f|)."""
+
+    def __init__(self, cp, dt):
+        self.cp, self.dt = cp, dt
+        self.w_f = 0.0
+
+    def reset(self):
+        self.w_f = 0.0
+
+    def step(self, e, omega, curvature=0.0):
+        cp = self.cp
+        if not cp.adaptive_speed:
+            return cp.base_speed
+        a = self.dt / (0.15 + self.dt)
+        self.w_f += a * (abs(omega) - self.w_f)
+        demand = cp.speed_gain_e * abs(e) + cp.speed_gain_w * self.w_f + 0.15 * abs(curvature)
+        return float(np.clip(cp.base_speed / (1.0 + demand), cp.v_min, cp.base_speed))
+
+
 def make_controller(cp, dt):
     if cp.controller == "pid":
         return PID(cp.kp, cp.ki, cp.kd, dt, cp.omega_max, cp.d_filter_n)
