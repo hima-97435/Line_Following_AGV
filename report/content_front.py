@@ -2,7 +2,7 @@
 from layout import *  # noqa: F401,F403
 from reportlab.platypus import NextPageTemplate, PageBreak
 
-REPO = "https://github.com/AmulyaJain2004/Line-Following-AGV"
+REPO = "https://github.com/hima-97435/Line_Following_AGV"
 
 
 def title_page(D):
@@ -12,10 +12,14 @@ def title_page(D):
          P("A Project Report on", "center"), Spacer(1, 0.3 * cm),
          P("LINE-FOLLOWING AGV WITH PID TUNING<br/>AND RESPONSE ANALYSIS", "title"),
          Spacer(1, 1.0 * cm),
-         P("Project No.: ________ &nbsp;&nbsp;&nbsp; Group No.: ________ &nbsp;&nbsp;&nbsp; Batch: B__", "center"),
+         P("Project No.: P - 03 &nbsp;&nbsp;&nbsp; Group No.: G – 08 &nbsp;&nbsp;&nbsp; Batch: B - 1", "center"),
          Spacer(1, 0.9 * cm),
          P("<b>Submitted by</b>", "center")]
-    rows = [["Name", "SAP ID"]] + [[f"Member {i}: ______________________", "______________"] for i in range(1, 5)]
+    rows = [["Name", "SAP ID"],
+            ["Himanshu Pokhriyal", "500121200"],
+            ["Anshuman Singh", "500121170"],
+            ["Mradul Lakhotiya", "500125405"],
+            ["Shashwat Kashyap", "500124830"]]
     t = Table([[Paragraph(a, ST["center"]), Paragraph(b, ST["center"])] for a, b in rows],
               colWidths=[9 * cm, 4.5 * cm])
     t.setStyle(TableStyle([("FONTNAME", (0, 0), (-1, 0), BOLD)]))
@@ -24,9 +28,9 @@ def title_page(D):
           P("<b>CSAI4014 Algorithms for Intelligent Systems and Robotics</b>", "center"),
           P("B.Tech Computer Science and Engineering (AI &amp; ML), Semester VII", "center"),
           Spacer(1, 0.9 * cm),
-          P("Under the guidance of", "center"), P("<b>[Faculty name]</b>", "center"),
+          P("Under the guidance of", "center"), P("<b>Dr. Resham Raj Shivwanshi</b>", "center"),
           Spacer(1, 1.2 * cm),
-          P("[School / Department, University name]", "center"),
+          P("School of Computer Science, UPES, Dehradun", "center"),
           P("October 2026", "centerb"), PageBreak()]
     return s
 
@@ -40,7 +44,11 @@ def declaration(D):
            f"({REPO}). Wherever the work of others has been used, it has been acknowledged and cited in the "
            "References. This report has not been submitted elsewhere for any other degree or course."),
          Spacer(1, 1.2 * cm)]
-    rows = [["Member", "Name", "SAP ID", "Signature"]] + [[f"M{i}", "", "", ""] for i in range(1, 5)]
+    rows = [["Member", "Name", "SAP ID", "Signature"],
+            ["M1", "Himanshu Pokhriyal", "500121200", ""],
+            ["M2", "Anshuman Singh", "500121170", ""],
+            ["M3", "Mradul Lakhotiya", "500125405", ""],
+            ["M4", "Shashwat Kashyap", "500124830", ""]]
     s += table("", rows, [2 * cm, 6.5 * cm, 3.5 * cm, 3.5 * cm])[1:2]
     s += [Spacer(1, 1.0 * cm), P("Date: ____________ &nbsp;&nbsp;&nbsp;&nbsp; Place: ____________"), PageBreak()]
     return s
@@ -54,11 +62,11 @@ def index_pages(D):
 
 def writing_allocation(D):
     rows = [["Member", "Name and SAP ID", "Sections written by this member", "No. of pages written"],
-            ["M1", "", "Abstract, 1 Introduction, 2 Problem Statement and Objectives, 6 System Design,"
-                         " 12 Conclusion and Future Scope", ""],
-            ["M2", "", "3 Literature and Industry Review, 4 Novelty, 13 References", ""],
-            ["M3", "", "5 Syllabus Mapping and Theory, 7 Methodology and Algorithms", ""],
-            ["M4", "", "8 Simulation Setup, 9 Results and Analysis, Appendix", ""],
+            ["M1", "Himanshu Pokhriyal (500121200)", "Abstract, 1 Introduction, 2 Problem Statement and Objectives, 6 System Design,"
+                         " 12 Conclusion and Future Scope", "7"],
+            ["M2", "Anshuman Singh (500121170)", "3 Literature and Industry Review, 4 Novelty, 13 References", "6"],
+            ["M3", "Mradul Lakhotiya (500125405)", "5 Syllabus Mapping and Theory, 7 Methodology and Algorithms", "8"],
+            ["M4", "Shashwat Kashyap (500124830)", "8 Simulation Setup, 9 Results and Analysis, Appendix", "10"],
             ["All", "Every member", "Section 10 (own row and signature), Section 11 (own reflection), "
                                     "Declaration", "-"]]
     s = [H1u("Writing Allocation")]

@@ -2,7 +2,7 @@
 from layout import *  # noqa: F401,F403
 from reportlab.platypus import PageBreak
 
-REPO = "https://github.com/AmulyaJain2004/Line-Following-AGV"
+REPO = "https://github.com/hima-97435/Line_Following_AGV"
 
 REFERENCES = [
     'G. Ullrich, <i>Automated Guided Vehicle Systems: A Primer with Practical Applications</i>, 2nd ed. Berlin, Germany: Springer, 2015.',
@@ -29,20 +29,20 @@ REFERENCES = [
 def sec10(D, T):
     rows = [["S. No.", "Member name and SAP ID", "Technical contribution (modules / algorithms / code files / "
              "experiments)", "Report sections written + signature"],
-            ["1 (M1)", "", "Simulation and robot model: agv/world.py (PyBullet world, generated URDF, motor-lag "
+            ["1 (M1)", "Himanshu Pokhriyal\n500121200", "Simulation and robot model: agv/world.py (PyBullet world, generated URDF, motor-lag "
              "model, COM-to-axle pose correction), agv/track.py (track geometry, floor texture), "
              "scripts/demo.py (GUI demo, GIF export); experiment E1 (scene, actuator identification); "
              f"Figures {T.f('system_block_diagram')}-{T.f('track_maps')}, {T.f('identification_step')}.",
              "Abstract, 1, 2, 6, 12"],
-            ["2 (M2)", "", "Sensing and perception: agv/sensors.py (ray-cast IR array, spot-coverage model, ADC, "
+            ["2 (M2)", "Anshuman Singh\n500121170", "Sensing and perception: agv/sensors.py (ray-cast IR array, spot-coverage model, ADC, "
              "peak-window estimator, camera rendering, IPM calibration and line fit), Kalman filter in "
              "agv/controllers.py; experiments E8 (noise and ablation) and E10 (camera vs IR); "
              f"Figures {T.f('noise')}, {T.f('camera_pipeline')}.", "3, 4, 13"],
-            ["3 (M3)", "", "Control and tuning: agv/controllers.py (PID with anti-windup, bang-bang, fuzzy PD, "
+            ["3 (M3)", "Mradul Lakhotiya\n500125405", "Control and tuning: agv/controllers.py (PID with anti-windup, bang-bang, fuzzy PD, "
              "relay, speed scheduler), agv/tuning.py (relay auto-tuning, ZN/TL rules, Nelder-Mead), derivation "
              "and implementation of LA-GS and the sensor-range guard in agv/sim.py; experiments E2 and E3; "
              f"Figures {T.f('relay_limit_cycle')}, {T.f('kp_sweep')}.", "5, 7"],
-            ["4 (M4)", "", "Analysis and validation: agv/analysis.py (step metrics, identification fit, loop "
+            ["4 (M4)", "Shashwat Kashyap\n500124830", "Analysis and validation: agv/analysis.py (step metrics, identification fit, loop "
              "FRF, margins, linear model), metrics in agv/sim.py, experiments E4, E5, E6, E7, E9, "
              "experiments/run_all.py, tests/, report generator; "
              f"Figures {T.f('step_response')}-{T.f('robustness')}.", "8, 9, Appendix"]]
@@ -130,7 +130,7 @@ def appendix(D):
     s = [H1("Appendix: Links and Logs"),
          H2("A.1 Links"),
          P(f"<b>GitHub repository (private; access shared with the evaluator):</b> {REPO}"),
-         P("<b>YouTube video (unlisted):</b> ______________________________________________"),
+         P("<b>YouTube video (unlisted):</b> https://youtu.be/R0RO__q8XGQ?si=AgLZs7mObpD58bSv"),
          P("<b>Reproducibility:</b> <font name='Mono' size='10'>python experiments/run_all.py</font> regenerates "
            "results/data/*.json and results/figures/*.png; "
            "<font name='Mono' size='10'>python report/build_report.py</font> regenerates this report."),
